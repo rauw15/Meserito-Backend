@@ -1,0 +1,3 @@
+Meserito esta diseñado para Restaurantes que usen un sistema de Barras o mesas lineales
+Los Users seran los meseros que tendran que tomar la orden y el robot hara la entrega de comida
+Tambien se Podra dejar una tablet o entrar por medio de la pagina del restaurante y ordenar tu producto

@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "typeRoots": ["./node_modules/@types", "./@types"],
+    "types": ["node"],
+    "module": "commonjs",
+    "esModuleInterop": true,
+    "target": "es6",
+    "noImplicitAny": true,
+    "moduleResolution": "node",
+    "sourceMap": false,
+    "rootDir": ".",
+    "strict": true,
+    "noEmit": false,
+    "resolveJsonModule": true,
+    "noUnusedLocals": true,
+    "outDir": "./dist"
+  },
+  "include": [
+    "src/**/*",
+    "src/types/express.d.ts",
+    "tests/**/**.ts",
+    "playground/**/**.ts"
+  ],
+  "exclude": ["node_modules"]
+}

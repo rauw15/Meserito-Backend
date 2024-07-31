@@ -21,7 +21,13 @@ class MqttService {
   }
 
   publish(topic: string, message: string) {
-    this.client.publish(topic, message);
+    this.client.publish(topic, message, (err) => {
+      if (err) {
+        console.error(`Error publishing to topic ${topic}:`, err);
+      } else {
+        console.log(`Message published to topic ${topic}: ${message}`);
+      }
+    });
   }
 }
 

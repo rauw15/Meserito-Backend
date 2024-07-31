@@ -6,6 +6,7 @@ import { userRouter } from './user/infrastructure/UserRouter';
 import { productRouter } from './product/infrastructure/ProductRouter';
 import { tableRouter } from './table/infraestructure/TableRouter';
 import { pedidoRouter } from './pedidos/infraestructure/pedidoRouter';
+import  RobotRoutes  from './robot/routes/RobotRoutes';
 import { WebSocketServer } from './websocket/WebSocketServer';
 import './websocket/WebSocketReconnect';
 
@@ -18,10 +19,11 @@ const options = {
 
 const signale = new Signale(options);
 
+// Configura CORS
 const corsOptions = {
   origin: 'http://3.208.51.209', // Permite solicitudes desde esta URL
   methods: ['GET', 'POST', 'PUT', 'DELETE'], // Permite estos métodos
-  allowedHeaders: ['Content-Type'], 
+  allowedHeaders: ['Content-Type'], // Permite estos headers
 };
 
 app.use(cors(corsOptions)); // Usa el middleware cors
@@ -30,6 +32,7 @@ app.use('/users', userRouter);
 app.use('/products', productRouter);
 app.use('/tables', tableRouter);
 app.use('/pedidos', pedidoRouter);
+app.use('/api/robot', RobotRoutes); // Agrega las rutas para el robot
 
 // Conexión a la base de datos
 connectDatabase()

@@ -20,9 +20,9 @@ const signale = new Signale(options);
 
 // Configura CORS
 const corsOptions = {
-  origin: 'http://localhost:5173', // Permite solicitudes desde esta URL
+  origin: '*', // Permite solicitudes desde esta URL
   methods: ['GET', 'POST', 'PUT', 'DELETE'], // Permite estos métodos
-  allowedHeaders: ['Content-Type'], // Permite estos headers
+  allowedHeaders: ['Content-Type'], 
 };
 
 app.use(cors(corsOptions)); // Usa el middleware cors

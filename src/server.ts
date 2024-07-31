@@ -18,9 +18,8 @@ const options = {
 
 const signale = new Signale(options);
 
-// Configura CORS
 const corsOptions = {
-  origin: '*', // Permite solicitudes desde esta URL
+  origin: 'http://3.208.51.209', // Permite solicitudes desde esta URL
   methods: ['GET', 'POST', 'PUT', 'DELETE'], // Permite estos métodos
   allowedHeaders: ['Content-Type'], 
 };

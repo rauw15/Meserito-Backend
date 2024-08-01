@@ -1,6 +1,6 @@
 import { WebSocketClient } from './WebSocketClient';
 
-const wsClient = new WebSocketClient('wss://meserito-backend.onrender.com');
+const wsClient = new WebSocketClient('ws://meserito-backend.onrender.com');
 
 // Ejemplo de envío de mensaje
 setInterval(() => {

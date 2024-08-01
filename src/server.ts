@@ -9,12 +9,8 @@ import { pedidoRouter } from './pedidos/infraestructure/pedidoRouter';
 import  RobotRoutes  from './robot/routes/RobotRoutes';
 import { WebSocketServer } from './websocket/WebSocketServer';
 import './websocket/WebSocketReconnect';
-import dotenv from 'dotenv';
-import http from 'http';
 import cron from 'node-cron';
 import { sendTestEmail } from './cron/emailService'; 
-
-dotenv.config();
 
 const app = express();
 app.disable('x-powered-by');
@@ -22,8 +18,6 @@ app.disable('x-powered-by');
 const options = {
   secrets: ['([0-9]{4}-?)+']
 };
-
-const server = http.createServer(app); 
 
 const signale = new Signale(options);
 
@@ -52,6 +46,24 @@ cron.schedule('* * * * *', async () => {
   }
 });
 
+
+// Configuración del cron job para realizar una consulta simple a la base de datos cada minuto
+cron.schedule('* * * * *', async () => {
+  try {
+    await connectDatabase(); // Conéctate a la base de datos
+    console.log('Conexión a la base de datos establecida correctamente');
+  } catch (error) {
+    console.error('Error al conectar a la base de datos:', error);
+  }
+});
+
+// Configuración del cron job para registrar un mensaje en la consola cada minuto
+cron.schedule('* * * * *', () => {
+  console.log('Cron job ejecutado: ' + new Date().toLocaleString());
+});
+
+
+
 // Conexión a la base de datos
 connectDatabase()
   .then(() => {
@@ -65,16 +77,5 @@ connectDatabase()
     process.exit(1);
   });
 
-// Iniciar WebSocketServer con el servidor HTTP
-const websocketUrl = process.env.NODE_ENV === 'production' ? process.env.WS_URL_PROD : process.env.WS_URL_DEV;
-
-if (!websocketUrl) {
-  throw new Error('WebSocket URL is not defined in the environment variables.');
-}
-
-const wss = new WebSocketServer();
-wss.start(server); // Método para iniciar el WebSocketServer con el servidor HTTP
-
-server.listen(3000, () => {
-  signale.success('Server online on port 3000');
-});
+// Iniciar servidor WebSocket sin asignar a una variable
+new WebSocketServer(3001);

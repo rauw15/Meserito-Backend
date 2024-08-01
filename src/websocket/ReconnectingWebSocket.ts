@@ -1,59 +1,62 @@
-import WebSocket from 'ws';
-
-export default class ReconnectingWebSocket {
-  private url: string;
+// reconnecting-websocket.ts
+class ReconnectingWebSocket {
   private ws: WebSocket | null = null;
-  private reconnectInterval: number;
+  private url: string;
+  private reconnectInterval: number = 5000; // Intervalo de reconexión en ms
+  private onOpenHandler: () => void = () => {};
+  private onMessageHandler: (event: MessageEvent) => void = () => {};
+  private onCloseHandler: () => void = () => {};
 
-  constructor(url: string, reconnectInterval: number = 5000) {
+  constructor(url: string) {
     this.url = url;
-    this.reconnectInterval = reconnectInterval;
     this.connect();
   }
 
   private connect() {
     this.ws = new WebSocket(this.url);
 
-    this.ws.on('open', () => {
-      console.log('WebSocket connected');
-    });
+    this.ws.onopen = () => {
+      this.onOpenHandler();
+    };
 
-    this.ws.on('close', () => {
-      console.log('WebSocket disconnected, attempting to reconnect');
+    this.ws.onmessage = (event) => {
+      this.onMessageHandler(event);
+    };
+
+    this.ws.onclose = () => {
+      this.onCloseHandler();
       setTimeout(() => this.connect(), this.reconnectInterval);
-    });
+    };
 
-    this.ws.on('error', (error: Error) => {
-      console.error('WebSocket error:', error);
+    this.ws.onerror = (err) => {
+      console.error('WebSocket error', err);
       this.ws?.close();
-    });
-
-    this.ws.on('message', (message) => {
-      console.log('Received message:', message.toString());
-    });
+    };
   }
 
-  public send(message: string) {
+  setOnOpenHandler(handler: () => void) {
+    this.onOpenHandler = handler;
+  }
+
+  setOnMessageHandler(handler: (event: MessageEvent) => void) {
+    this.onMessageHandler = handler;
+  }
+
+  setOnCloseHandler(handler: () => void) {
+    this.onCloseHandler = handler;
+  }
+
+  send(data: string) {
     if (this.ws?.readyState === WebSocket.OPEN) {
-      this.ws.send(message);
+      this.ws.send(data);
     } else {
-      console.error('WebSocket is not open');
+      console.error('WebSocket no está abierto. Estado de ReadyState:', this.ws?.readyState);
     }
   }
 
-  public setOnOpenHandler(handler: () => void) {
-    this.ws?.on('open', handler);
-  }
-
-  public setOnMessageHandler(handler: (event: WebSocket.MessageEvent) => void) {
-    this.ws?.on('message', handler);
-  }
-
-  public setOnCloseHandler(handler: () => void) {
-    this.ws?.on('close', handler);
-  }
-
-  public close() {
+  close() {
     this.ws?.close();
   }
 }
+
+export default ReconnectingWebSocket;

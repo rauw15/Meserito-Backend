@@ -11,6 +11,8 @@ import { WebSocketServer } from './websocket/WebSocketServer';
 import './websocket/WebSocketReconnect';
 import dotenv from 'dotenv';
 import http from 'http';
+import cron from 'node-cron';
+import { sendTestEmail } from './cron/emailService'; 
 
 dotenv.config();
 
@@ -39,6 +41,16 @@ app.use('/products', productRouter);
 app.use('/tables', tableRouter);
 app.use('/pedidos', pedidoRouter);
 app.use('/api/robot', RobotRoutes); // Agrega las rutas para el robot
+
+// Configuración del cron job para enviar un correo de prueba cada minuto
+cron.schedule('* * * * *', async () => {
+  try {
+    await sendTestEmail('rmimiagavasquez@gmail.com', 'Correo de Prueba', 'Este es un correo de prueba enviado por el cron job.');
+    console.log('Correo de prueba enviado con éxito');
+  } catch (error) {
+    console.error('Error al enviar el correo de prueba:', error);
+  }
+});
 
 // Conexión a la base de datos
 connectDatabase()

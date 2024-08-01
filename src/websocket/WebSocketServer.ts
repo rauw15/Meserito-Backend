@@ -4,8 +4,8 @@ export class WebSocketServer {
   private wss: Server;
   private clients: Map<WS, string> = new Map(); // Mapa para almacenar usuarios por WebSocket
 
-  constructor(port: number) {
-    this.wss = new Server({ port });
+  constructor(url: string) {
+    this.wss = new Server({ noServer: true });
 
     this.wss.on('connection', (ws) => {
       console.log('Client connected');
@@ -41,7 +41,7 @@ export class WebSocketServer {
       });
     });
 
-    console.log(`WebSocket server is listening on ws://localhost:${port}`);
+    console.log(`WebSocket server is listening on ${url}`);
   }
 
   private broadcast(message: string) {

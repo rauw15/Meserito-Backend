@@ -9,6 +9,9 @@ import { pedidoRouter } from './pedidos/infraestructure/pedidoRouter';
 import  RobotRoutes  from './robot/routes/RobotRoutes';
 import { WebSocketServer } from './websocket/WebSocketServer';
 import './websocket/WebSocketReconnect';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const app = express();
 app.disable('x-powered-by');
@@ -47,5 +50,11 @@ connectDatabase()
     process.exit(1);
   });
 
-// Iniciar servidor WebSocket sin asignar a una variable
-new WebSocketServer(3001);
+// Iniciar servidor WebSocket con URL basada en la variable de entorno
+const websocketUrl = process.env.NODE_ENV === 'production' ? process.env.WS_URL_PROD : process.env.WS_URL_DEV;
+
+if (!websocketUrl) {
+  throw new Error('WebSocket URL is not defined in the environment variables.');
+}
+
+new WebSocketServer(websocketUrl);

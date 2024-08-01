@@ -10,6 +10,7 @@ import  RobotRoutes  from './robot/routes/RobotRoutes';
 import { WebSocketServer } from './websocket/WebSocketServer';
 import './websocket/WebSocketReconnect';
 import dotenv from 'dotenv';
+import http from 'http';
 
 dotenv.config();
 
@@ -19,6 +20,8 @@ app.disable('x-powered-by');
 const options = {
   secrets: ['([0-9]{4}-?)+']
 };
+
+const server = http.createServer(app); 
 
 const signale = new Signale(options);
 
@@ -50,11 +53,16 @@ connectDatabase()
     process.exit(1);
   });
 
-// Iniciar servidor WebSocket con URL basada en la variable de entorno
+// Iniciar WebSocketServer con el servidor HTTP
 const websocketUrl = process.env.NODE_ENV === 'production' ? process.env.WS_URL_PROD : process.env.WS_URL_DEV;
 
 if (!websocketUrl) {
   throw new Error('WebSocket URL is not defined in the environment variables.');
 }
 
-new WebSocketServer(websocketUrl);
+const wss = new WebSocketServer();
+wss.start(server); // Método para iniciar el WebSocketServer con el servidor HTTP
+
+server.listen(3000, () => {
+  signale.success('Server online on port 3000');
+});

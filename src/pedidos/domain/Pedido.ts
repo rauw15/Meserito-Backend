@@ -5,6 +5,7 @@ export interface Pedido extends Document {
   userId: number;
   productIds: number[];
   status: string;
+  table_id: number;
 }
 
 import mongoose, { Schema } from 'mongoose';
@@ -14,6 +15,7 @@ const PedidoSchema: Schema = new Schema({
   userId: { type: Number},
   productIds: { type: [Number], required: true },
   status: { type: String, required: true },
+  table_id: { type: Number, required: true },
 });
 
 export default mongoose.model<Pedido>('Pedido', PedidoSchema);

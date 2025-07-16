@@ -6,11 +6,15 @@ export class CreateUserUseCase {
 
   async run(id: number, name: string, password: string, email: string, role: string): Promise<User | null> {
     try {
-      const user = await this.userRepository.createUser(id, name, password, email);
+      const user = await this.userRepository.createUser(id, name, password, email, role);
       return user;
     } catch (error) {
       console.error('Error creating user:', error);
       return null;
     }
+  }
+
+  public getRepository() {
+    return this.userRepository;
   }
 }

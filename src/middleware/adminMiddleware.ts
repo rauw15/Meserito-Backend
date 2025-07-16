@@ -7,7 +7,7 @@ export const adminMiddleware = (req: Request, res: Response, next: NextFunction)
   authMiddleware(req, res, () => {
     const user = req.user as TokenPayload;
 
-    if (user.role !== 'admin') {
+    if (user.role !== 'admin' && user.role !== 'administrador') {
       return res.status(403).send({ status: 'error', message: 'Access denied' });
     }
 

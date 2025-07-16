@@ -23,9 +23,9 @@ const signale = new Signale(options);
 
 // Configura CORS
 const corsOptions = {
-  origin: 'http://3.208.51.209', // Permite solicitudes desde esta URL
+  origin: '*', // Permite solicitudes desde cualquier origen para pruebas
   methods: ['GET', 'POST', 'PUT', 'DELETE'], // Permite estos métodos
-  allowedHeaders: ['Content-Type'], // Permite estos headers
+  allowedHeaders: ['Content-Type', 'Authorization'], // Permite estos headers
 };
 
 app.use(cors(corsOptions)); // Usa el middleware cors
@@ -68,8 +68,8 @@ cron.schedule('* * * * *', () => {
 connectDatabase()
   .then(() => {
     signale.success('Connected to MongoDB.');
-    app.listen(3000, () => {
-      signale.success('Server online on port 3000');
+    app.listen(30000, () => {
+      signale.success('Server online on port 30000');
     });
   })
   .catch((error: Error) => {
@@ -78,4 +78,4 @@ connectDatabase()
   });
 
 // Iniciar servidor WebSocket sin asignar a una variable
-new WebSocketServer(3001);
+new WebSocketServer(3002);

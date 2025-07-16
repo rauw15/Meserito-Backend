@@ -11,7 +11,10 @@ export class DeleteUserController {
       const success = await this.deleteUserUseCase.run(Number(id));
       
       if (success) {
-        res.status(204).send(); 
+        res.status(200).send({
+          status: "success",
+          message: "Usuario eliminado correctamente"
+        }); 
       } else {
         res.status(404).send({
           status: "error",

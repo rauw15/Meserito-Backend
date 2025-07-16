@@ -9,7 +9,7 @@ import {
 
 const pedidoRouter = express.Router();
 
-pedidoRouter.post("/create", async (req, res) => {
+pedidoRouter.post("/", async (req, res) => {
   try {
     await createPedidoController.run(req, res);
   } catch (error) {
@@ -18,7 +18,7 @@ pedidoRouter.post("/create", async (req, res) => {
   }
 });
 
-pedidoRouter.get("/getAll", async (req, res) => {
+pedidoRouter.get("/", async (req, res) => {
   try {
     await getAllPedidosController.run(req, res);
   } catch (error) {
@@ -27,7 +27,7 @@ pedidoRouter.get("/getAll", async (req, res) => {
   }
 });
 
-pedidoRouter.get("/get/:id", async (req, res) => {
+pedidoRouter.get("/:id", async (req, res) => {
   try {
     await getByIdPedidoController.run(req, res);
   } catch (error) {
@@ -36,7 +36,7 @@ pedidoRouter.get("/get/:id", async (req, res) => {
   }
 });
 
-pedidoRouter.put("/update/:id", async (req, res) => {
+pedidoRouter.put("/:id", async (req, res) => {
   try {
     await updatePedidoController.run(req, res);
   } catch (error) {
@@ -45,7 +45,7 @@ pedidoRouter.put("/update/:id", async (req, res) => {
   }
 });
 
-pedidoRouter.delete("/delete/:id", async (req, res) => {
+pedidoRouter.delete("/:id", async (req, res) => {
   try {
     await deletePedidoController.run(req, res);
   } catch (error) {

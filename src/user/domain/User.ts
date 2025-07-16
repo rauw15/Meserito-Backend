@@ -13,7 +13,7 @@ const UserSchema: Schema = new Schema({
   name: { type: String, required: true },
   password: { type: String, required: true },
   email: { type: String, required: true, unique: true },
-  role: { type: String, required: true, enum: ['user', 'admin'], default: 'user' }  
+  role: { type: String, required: true, enum: ['user', 'admin', 'administrador', 'mesero'], default: 'user' }  
 });
 
 const UserModel: Model<User> = mongoose.model<User>('User', UserSchema);

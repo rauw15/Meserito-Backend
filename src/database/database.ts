@@ -1,16 +1,7 @@
 import mongoose from 'mongoose';
-import dotenv from 'dotenv';
 
-dotenv.config();
-
-const {
-  MONGODB_URI,
-  MONGODB_DATABASE
-} = process.env;
-
-if (!MONGODB_URI || !MONGODB_DATABASE) {
-  throw new Error('MongoDB URI or database name is not provided in the environment variables.');
-}
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017';
+const MONGODB_DATABASE = process.env.MONGODB_DATABASE || 'meserito_test';
 
 export const connectDatabase = async () => {
   try {

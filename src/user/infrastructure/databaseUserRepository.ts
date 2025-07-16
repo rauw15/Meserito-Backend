@@ -19,9 +19,9 @@ export class UserMongoRepository implements UserRepository {
     }
   }
 
-  async createUser(id: number, name: string, password: string, email: string): Promise<UserInterface | null> {
+  async createUser(id: number, name: string, password: string, email: string, role: string): Promise<UserInterface | null> {
     try {
-      const newUser = new this.userModel({ id, name, password, email });
+      const newUser = new this.userModel({ id, name, password, email, role });
       const savedUser = await newUser.save();
       return savedUser;
     } catch (error) {

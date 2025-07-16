@@ -26,10 +26,18 @@ export class TableMongoRepository implements TableRepository {
     numberOfClients?: number
   ): Promise<TableInterface | null> {
     try {
+      // Verificar si ya existe una mesa con el mismo id o number
+      const existing = await this.tableModel.findOne({ id }).exec();
+      if (existing) {
+        throw new Error('DUPLICATE_TABLE');
+      }
       const newTable = new this.tableModel({ id, color, status, numberOfClients });
       const savedTable = await newTable.save();
       return savedTable;
     } catch (error) {
+      if (error instanceof Error && error.message === 'DUPLICATE_TABLE') {
+        throw error;
+      }
       console.error('Error creating table:', error);
       return null;
     }

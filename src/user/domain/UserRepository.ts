@@ -6,7 +6,8 @@ export interface UserRepository {
     id: number,
     name: string,
     password: string,
-    email: string
+    email: string,
+    role: string // Nuevo parámetro
   ): Promise<User | null>;
   getById(id: number): Promise<User | null>; 
   findByEmail(email: string): Promise<User | null>; 

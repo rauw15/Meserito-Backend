@@ -8,6 +8,8 @@ import {
   updateProductController,
   deleteProductController
 } from "./dependencies";
+import { adminMiddleware } from '../../middleware/adminMiddleware';
+import { authMiddleware } from '../../middleware/authMiddleware';
 
 // Configurar multer para manejar subidas de archivos
 const upload = multer({ dest: "uploads/" });
@@ -28,7 +30,7 @@ productRouter.get("/getAll", async (req, res) => {
   }
 });
 
-productRouter.post("/create", upload.single("image"), async (req, res) => {
+productRouter.post("/create", authMiddleware, adminMiddleware, upload.single("image"), async (req, res) => {
   try {
     await createProductController.run(req, res);
   } catch (error) {
@@ -46,7 +48,7 @@ productRouter.get("/get/:id", async (req, res) => {
   }
 });
 
-productRouter.put("/update/:id", async (req, res) => {
+productRouter.put("/update/:id", authMiddleware, adminMiddleware, async (req, res) => {
   try {
     await updateProductController.run(req, res);
   } catch (error) {
@@ -55,7 +57,7 @@ productRouter.put("/update/:id", async (req, res) => {
   }
 });
 
-productRouter.delete("/delete/:id", async (req, res) => {
+productRouter.delete("/delete/:id", authMiddleware, adminMiddleware, async (req, res) => {
   try {
     await deleteProductController.run(req, res);
   } catch (error) {

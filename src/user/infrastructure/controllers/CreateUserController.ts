@@ -1,62 +1,58 @@
 import { Request, Response } from "express";
 import { CreateUserUseCase } from "../../application/CreateUserUseCase";
 import bcrypt from 'bcrypt';
-import { TokenService } from "../TokenService";
 
 const saltosBcrypt: number = parseInt(process.env.SALTOS_BCRYPT || '4');
-
-// Define el correo y la contraseña del administrador
-const adminEmail = "admin@example.com";
-const adminPassword = "adminPassword";
 
 export class CreateUserController {
   constructor(readonly createUserUseCase: CreateUserUseCase) {}
 
   async run(req: Request, res: Response) {
     const data = req.body;
-    const hashedPassword: string = await bcrypt.hash(data.password, saltosBcrypt);
-
+    if (!data.name || !data.email || !data.password) {
+      return res.status(400).send({ error: "Faltan campos obligatorios" });
+    }
     try {
-      // Verifica si el correo coincide con el del administrador
-      const isAdmin = data.email === adminEmail && data.password === adminPassword;
-      const role = isAdmin ? 'admin' : 'user';  // Asigna el rol
-
+      // Verificar si el email ya existe
+      const existing = await this.createUserUseCase.getRepository().findByEmail(data.email);
+      if (existing) {
+        return res.status(400).send({ error: "El email ya existe" });
+      }
+      const hashedPassword: string = await bcrypt.hash(data.password, saltosBcrypt);
+      // Permitir rol enviado si es válido
+      const validRoles = ['admin', 'user', 'administrador', 'mesero'];
+      let role = 'user';
+      if (data.role && validRoles.includes(data.role)) {
+        role = data.role;
+      }
+      // Si no se envía rol, pero el email es admin@example.com, asignar admin
+      if (!data.role && data.email === "admin@example.com") {
+        role = 'administrador';
+      }
+      // Generar ID automático si no se proporciona
+      let userId = data.id;
+      if (!userId) {
+        userId = Date.now();
+      }
       const user = await this.createUserUseCase.run(
-        Number(data.id),
+        Number(userId),
         data.name,
         hashedPassword,
         data.email,
-        role  // Pasa el rol al caso de uso
+        role
       );
-
       if (user) {
-        const token = TokenService.generateToken({ id: user.id, email: user.email, role: user.role });
-
-        console.log(`Generated Token: ${token}`);
-
-        res.status(201).send({
-          status: "success",
-          data: {
-            id: user.id,
-            name: user.name,
-            email: user.email,
-            role: user.role,  // Incluye el rol en la respuesta
-            token: token
-          },
+        return res.status(201).send({
+          id: user.id || user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role
         });
       } else {
-        res.status(204).send({
-          status: "error",
-          data: "No fue posible agregar el usuario",
-        });
+        return res.status(400).send({ error: "No fue posible agregar el usuario" });
       }
     } catch (error) {
-      console.error('Error creating user:', error); 
-      res.status(500).send({
-        status: "error",
-        data: "Ocurrió un error al crear el usuario",
-        msn: error instanceof Error ? error.message : 'Unknown error',
-      });
+      return res.status(500).send({ error: "Ocurrió un error al crear el usuario" });
     }
   }
 }

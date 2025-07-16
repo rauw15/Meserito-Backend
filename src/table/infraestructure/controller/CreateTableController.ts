@@ -21,7 +21,12 @@ export class CreateTableController {
         });
       }
     } catch (error) {
-      if (error instanceof Error) {
+      if (error instanceof Error && error.message === 'DUPLICATE_TABLE') {
+        res.status(409).send({
+          status: "error",
+          message: "Table with this id already exists",
+        });
+      } else if (error instanceof Error) {
         res.status(500).send({
           status: "error",
           message: "Error creating table",

@@ -22,12 +22,13 @@ export class PedidoMongoRepository implements PedidoRepository {
 
   async createPedido(
     id: number,
-    userId: number,
+    userId: number | null,
     productIds: number[],
-    status: string = 'pending' // Valor predeterminado para status
+    status: string = 'pending',
+    table_id: number
   ): Promise<Pedido | null> {
     try {
-      const newPedido = new this.pedidoModel({ id, userId, productIds, status });
+      const newPedido = new this.pedidoModel({ id, userId, productIds, status, table_id });
       const savedPedido = await newPedido.save();
       return savedPedido;
     } catch (error) {
@@ -63,6 +64,17 @@ export class PedidoMongoRepository implements PedidoRepository {
     } catch (error) {
       console.error('Error deleting pedido:', error);
       return false;
+    }
+  }
+
+  async getActiveByTableId(table_id: number): Promise<Pedido | null> {
+    try {
+      // Considera activo si el status es 'pendiente' o 'servido'
+      const pedido = await this.pedidoModel.findOne({ table_id, status: { $in: ['pendiente', 'servido'] } }).exec();
+      return pedido;
+    } catch (error) {
+      console.error('Error fetching active pedido by table_id:', error);
+      return null;
     }
   }
 }

@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { CreatePedidoUseCase } from '../../application/CreatePedidoUseCase';
+import { globalWebSocketServer } from '../../../server';
 
 export class CreatePedidoController {
   constructor(private readonly createPedidoUseCase: CreatePedidoUseCase) {}
@@ -10,6 +11,21 @@ export class CreatePedidoController {
     try {
       const newPedido = await this.createPedidoUseCase.run(table_id);
       if (newPedido) {
+        // Enviar notificación WebSocket sobre el nuevo pedido
+        if (globalWebSocketServer) {
+          globalWebSocketServer.notifyOrderUpdate(
+            newPedido.id.toString(),
+            'creado',
+            table_id.toString(),
+            `Nuevo pedido #${newPedido.id} creado para la mesa ${table_id}`
+          );
+          
+          // También enviar notificación general a administradores
+          globalWebSocketServer.sendNotification(
+            `📋 Nuevo pedido creado: #${newPedido.id} en mesa ${table_id}`
+          );
+        }
+        
         res.status(201).send({ status: 'success', data: newPedido });
       } else {
         res.status(400).send({ status: 'error', message: 'Error creating pedido or invalid data' });

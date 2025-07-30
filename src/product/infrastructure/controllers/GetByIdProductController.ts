@@ -7,6 +7,14 @@ export class GetByIdProductController {
   async run(req: Request, res: Response) {
     const id: number = parseInt(req.params.id);
 
+    // Validar que el ID sea válido
+    if (isNaN(id)) {
+      return res.status(400).send({
+        status: "error",
+        msn: "ID de producto inválido",
+      });
+    }
+
     try {
       const product = await this.getByIdProductUseCase.run(id);
 
@@ -26,11 +34,11 @@ export class GetByIdProductController {
           msn: "Producto no encontrado",
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       res.status(500).send({
         status: "error",
         data: "Ocurrió un error al obtener el producto",
-        msn: error,
+        msn: error.message || "Error interno del servidor",
       });
     }
   }

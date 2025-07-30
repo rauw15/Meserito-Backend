@@ -1,3 +1,4 @@
+/// <reference path="../../@types/express.d.ts" />
 // src/middleware/authMiddleware.ts
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
@@ -16,7 +17,7 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction) 
 
   try {
     const decoded = jwt.verify(token, jwtSecret) as TokenPayload;
-    req.user = decoded; 
+    (req as any).user = decoded; 
     next();
   } catch (error) {
     return res.status(401).send({ status: 'error', message: 'Invalid token' });

@@ -61,18 +61,6 @@ npm run test:python
 12. **PUT /users/update/{id}**: Actualizar la información de un usuario existente
 13. **DELETE /users/delete/{id}**: Eliminar un usuario
 
-## Restricción de acceso a endpoints de productos
-
-A partir de la versión actual, los siguientes endpoints solo pueden ser accedidos por usuarios con rol de administrador ('admin' o 'administrador'):
-
-- POST `/products/create`
-- PUT `/products/update/:id`
-- DELETE `/products/delete/:id`
-
-Si un usuario no autenticado o sin privilegios de administrador intenta acceder, recibirá un error 401 (no autenticado) o 403 (prohibido).
-
-Las pruebas automáticas incluyen casos para verificar que solo los administradores pueden realizar estas acciones.
-
 ## Solución de Problemas
 
 ### Error: "Connection refused"

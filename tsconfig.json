@@ -13,13 +13,13 @@
     "noEmit": false,
     "resolveJsonModule": true,
     "noUnusedLocals": true,
-    "outDir": "./dist"
-
-    
+    "outDir": "./dist",
+    "declaration": true,
+    "skipLibCheck": true
   },
   "include": [
     "src/**/*",
-    "src/types/express.d.ts",
+    "@types/**/*",
     "tests/**/**.ts",
     "playground/**/**.ts"
   ],

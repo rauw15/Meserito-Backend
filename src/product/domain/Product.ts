@@ -9,10 +9,10 @@ export interface Product extends Document {
 }
 
 const ProductSchema: Schema = new Schema({
-  id: { type: String, required: true },
-  name: { type: String, required: true },
+  id: { type: Number, required: true, unique: true },
+  name: { type: String, required: true, unique: true },
   description: { type: String, required: true },
-  price: { type: Number, required: true },
+  price: { type: Number, required: true, min: 0 },
   imageUrl: { type: String }, // Agregar la propiedad imageUrl al esquema
 });
 

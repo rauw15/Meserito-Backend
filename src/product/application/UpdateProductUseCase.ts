@@ -9,9 +9,15 @@ export class UpdateProductUseCase {
     try {
       const updatedProduct = await this.productRepository.update(id, data);
       return updatedProduct;
-    } catch (error) {
+    } catch (error: any) {
+      // Propagar errores específicos del repository
+      if (error.message === 'DUPLICATE_NAME' || 
+          error.message === 'DUPLICATE_FIELD') {
+        throw error;
+      }
+      
       console.error('Error updating product:', error);
-      return null;
+      throw new Error('Error al actualizar el producto');
     }
   }
 }

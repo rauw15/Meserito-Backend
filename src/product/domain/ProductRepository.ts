@@ -12,4 +12,5 @@ export interface ProductRepository {
   getById(id: number): Promise<Product | null>;
   update(id: number, data: Partial<Product>): Promise<Product | null>;
   delete(id: number): Promise<boolean>;
+  findByName(name: string): Promise<Product | null>;
 }

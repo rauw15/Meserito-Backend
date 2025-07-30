@@ -20,9 +20,16 @@ export class CreateProductUseCase {
         imageUrl
       );
       return product;
-    } catch (error) {
+    } catch (error: any) {
+      // Propagar errores específicos del repository
+      if (error.message === 'DUPLICATE_ID' || 
+          error.message === 'DUPLICATE_NAME' || 
+          error.message === 'DUPLICATE_FIELD') {
+        throw error;
+      }
+      
       console.error('Error creating product:', error);
-      return null;
+      throw new Error('Error al crear el producto');
     }
   }
 }

@@ -7,7 +7,7 @@ import { userRouter } from './user/infrastructure/UserRouter';
 import { productRouter } from './product/infrastructure/ProductRouter';
 import { tableRouter } from './table/infraestructure/TableRouter';
 import { pedidoRouter } from './pedidos/infraestructure/pedidoRouter';
-import  RobotRoutes  from './robot/routes/RobotRoutes';
+// import  RobotRoutes  from './robot/routes/RobotRoutes'; // MQTT DESHABILITADO
 import { WebSocketServer } from './websocket/WebSocketServer';
 import './websocket/WebSocketReconnect';
 import cron from 'node-cron';
@@ -35,7 +35,7 @@ app.use('/users', userRouter);
 app.use('/products', productRouter);
 app.use('/tables', tableRouter);
 app.use('/pedidos', pedidoRouter);
-app.use('/api/robot', RobotRoutes); // Agrega las rutas para el robot
+// app.use('/api/robot', RobotRoutes); // MQTT DESHABILITADO - Rutas del robot comentadas
 
 // Configuración del cron job para enviar un correo de prueba cada minuto
 cron.schedule('* * * * *', async () => {

@@ -1,7 +1,7 @@
 import { Model } from 'mongoose';
 import { Pedido } from '../domain/Pedido';
 import PedidoModel from '../domain/Pedido'; // Modelo de Mongoose para Pedido
-import { PedidoRepository } from '../domain/PedidoRepository';
+import { PedidoRepository, PedidoFilters } from '../domain/PedidoRepository';
 
 export class PedidoMongoRepository implements PedidoRepository {
   private pedidoModel: Model<Pedido>;
@@ -16,6 +16,30 @@ export class PedidoMongoRepository implements PedidoRepository {
       return pedidos;
     } catch (error) {
       console.error('Error fetching all pedidos:', error);
+      return null;
+    }
+  }
+
+  async getFiltered(filters: PedidoFilters): Promise<Pedido[] | null> {
+    try {
+      const query: any = {};
+      
+      if (filters.status) {
+        query.status = filters.status;
+      }
+      
+      if (filters.userId !== undefined) {
+        query.userId = filters.userId;
+      }
+      
+      if (filters.table_id !== undefined) {
+        query.table_id = filters.table_id;
+      }
+
+      const pedidos = await this.pedidoModel.find(query).exec();
+      return pedidos;
+    } catch (error) {
+      console.error('Error fetching filtered pedidos:', error);
       return null;
     }
   }

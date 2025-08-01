@@ -6,12 +6,21 @@ export class CreatePedidoController {
   constructor(private readonly createPedidoUseCase: CreatePedidoUseCase) {}
 
   async run(req: Request, res: Response): Promise<void> {
-    const { table_id } = req.body;
+    // ✅ CAMBIO: Extraer todos los datos del body
+    const { table_id, userId, productIds } = req.body;
+
+    // Validación básica de entrada
+    if (!table_id || !userId || !Array.isArray(productIds)) {
+      res.status(400).send({ status: 'error', message: 'Missing required fields: table_id, userId, productIds' });
+      return;
+    }
 
     try {
-      const newPedido = await this.createPedidoUseCase.run(table_id);
+      // ✅ CAMBIO: Pasar todos los datos al UseCase
+      const newPedido = await this.createPedidoUseCase.run(table_id, userId, productIds);
+
       if (newPedido) {
-        // Enviar notificación WebSocket sobre el nuevo pedido
+        // Lógica de WebSocket (sin cambios)
         if (globalWebSocketServer) {
           globalWebSocketServer.notifyOrderUpdate(
             newPedido.id.toString(),
@@ -19,8 +28,6 @@ export class CreatePedidoController {
             table_id.toString(),
             `Nuevo pedido #${newPedido.id} creado para la mesa ${table_id}`
           );
-          
-          // También enviar notificación general a administradores
           globalWebSocketServer.sendNotification(
             `📋 Nuevo pedido creado: #${newPedido.id} en mesa ${table_id}`
           );
@@ -28,9 +35,11 @@ export class CreatePedidoController {
         
         res.status(201).send({ status: 'success', data: newPedido });
       } else {
-        res.status(400).send({ status: 'error', message: 'Error creating pedido or invalid data' });
+        // Este caso ahora es menos probable si el UseCase lanza errores
+        res.status(500).send({ status: 'error', message: 'Error creating pedido' });
       }
     } catch (error: unknown) {
+      // Lógica de manejo de errores (sin cambios)
       if (error instanceof Error) {
         if (error.message === 'TABLE_NOT_FOUND') {
           res.status(404).send({ status: 'error', message: 'Table not found' });

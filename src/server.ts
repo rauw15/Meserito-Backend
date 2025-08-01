@@ -79,10 +79,11 @@ connectDatabase()
     console.log('✅ ===== CONEXIÓN A MONGODB EXITOSA ===== ✅');
     signale.success('Connected to MongoDB.');
     
-    app.listen(30000, () => {
+    const PORT = process.env.PORT || 30000;
+    app.listen(PORT, () => {
       console.log('🌐 ===== SERVIDOR HTTP INICIADO ===== 🌐');
-      signale.success('Server online on port 30000');
-      console.log('📍 HTTP Server: http://localhost:30000');
+      signale.success(`Server online on port ${PORT}`);
+      console.log(`📍 HTTP Server: http://localhost:${PORT}`);
       console.log('');
     });
   })

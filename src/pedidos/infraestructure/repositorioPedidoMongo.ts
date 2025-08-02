@@ -1,7 +1,7 @@
 import { Model } from 'mongoose';
 import { Pedido } from '../domain/Pedido';
 import PedidoModel from '../domain/Pedido'; // Modelo de Mongoose para Pedido
-import { PedidoRepository, PedidoFilters } from '../domain/PedidoRepository';
+import { PedidoRepository, PedidoFilters, CreatePedidoData } from '../domain/PedidoRepository';
 
 export class PedidoMongoRepository implements PedidoRepository {
   private pedidoModel: Model<Pedido>;
@@ -12,7 +12,7 @@ export class PedidoMongoRepository implements PedidoRepository {
 
   async getAll(): Promise<Pedido[] | null> {
     try {
-      const pedidos = await this.pedidoModel.find().exec();
+      const pedidos = await this.pedidoModel.find().sort({ created_at: -1 }).exec();
       return pedidos;
     } catch (error) {
       console.error('Error fetching all pedidos:', error);
@@ -29,14 +29,14 @@ export class PedidoMongoRepository implements PedidoRepository {
       }
       
       if (filters.userId !== undefined) {
-        query.userId = filters.userId;
+        query.user_id = filters.userId;
       }
       
       if (filters.table_id !== undefined) {
         query.table_id = filters.table_id;
       }
 
-      const pedidos = await this.pedidoModel.find(query).exec();
+      const pedidos = await this.pedidoModel.find(query).sort({ created_at: -1 }).exec();
       return pedidos;
     } catch (error) {
       console.error('Error fetching filtered pedidos:', error);
@@ -44,15 +44,25 @@ export class PedidoMongoRepository implements PedidoRepository {
     }
   }
 
-  async createPedido(
-    id: number,
-    userId: number | null,
-    productIds: number[],
-    status: string = 'pending',
-    table_id: number
-  ): Promise<Pedido | null> {
+  async createPedido(data: CreatePedidoData): Promise<Pedido | null> {
     try {
-      const newPedido = new this.pedidoModel({ id, userId, productIds, status, table_id });
+      // Generar ID único
+      const lastPedido = await this.pedidoModel.findOne().sort({ id: -1 }).exec();
+      const newId = lastPedido ? lastPedido.id + 1 : 1;
+
+      const newPedido = new this.pedidoModel({
+        id: newId,
+        table_id: data.table_id,
+        user_id: data.user_id,
+        user_info: data.user_info,
+        products: data.products,
+        total: data.total,
+        status: data.status || 'pendiente',
+        timestamp: new Date(),
+        created_at: new Date(),
+        updated_at: new Date()
+      });
+
       const savedPedido = await newPedido.save();
       return savedPedido;
     } catch (error) {
@@ -73,7 +83,11 @@ export class PedidoMongoRepository implements PedidoRepository {
 
   async update(id: number, data: Partial<Pedido>): Promise<Pedido | null> {
     try {
-      const updatedPedido = await this.pedidoModel.findOneAndUpdate({ id }, data, { new: true }).exec();
+      const updatedPedido = await this.pedidoModel.findOneAndUpdate(
+        { id }, 
+        { ...data, updated_at: new Date() }, 
+        { new: true }
+      ).exec();
       return updatedPedido;
     } catch (error) {
       console.error('Error updating pedido:', error);
@@ -93,8 +107,11 @@ export class PedidoMongoRepository implements PedidoRepository {
 
   async getActiveByTableId(table_id: number): Promise<Pedido | null> {
     try {
-      // Considera activo si el status es 'pendiente' o 'servido'
-      const pedido = await this.pedidoModel.findOne({ table_id, status: { $in: ['pendiente', 'servido'] } }).exec();
+      // Considera activo si el status es 'pendiente' o 'en-preparacion'
+      const pedido = await this.pedidoModel.findOne({ 
+        table_id, 
+        status: { $in: ['pendiente', 'en-preparacion'] } 
+      }).exec();
       return pedido;
     } catch (error) {
       console.error('Error fetching active pedido by table_id:', error);

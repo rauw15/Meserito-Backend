@@ -1,15 +1,16 @@
-import { PedidoRepository } from '../domain/PedidoRepository';
-import { Pedido } from '../domain/Pedido';
+import { PedidoRepository, CreatePedidoData } from '../domain/PedidoRepository';
+import { Pedido, ProductoEnPedido, UsuarioInfo } from '../domain/Pedido';
 import TableModel from '../../table/domain/Table';
+import UserModel from '../../user/domain/User';
+import ProductModel from '../../product/domain/Product';
 
 export class CreatePedidoUseCase {
   constructor(private readonly pedidoRepository: PedidoRepository) {}
 
-  // ✅ CAMBIO: Ahora acepta todos los datos necesarios del pedido
   async run(
     table_id: number,
-    userId: number,
-    productIds: number[]
+    user_id: number,
+    products: ProductoEnPedido[]
   ): Promise<Pedido | null> {
     try {
       // 1. Verificar si la mesa existe y está disponible
@@ -21,29 +22,62 @@ export class CreatePedidoUseCase {
         throw new Error('TABLE_NOT_AVAILABLE');
       }
 
-      // 2. Verificar que no haya pedido activo para esa mesa (opcional pero recomendado)
+      // 2. Verificar que no haya pedido activo para esa mesa
       const existingPedido = await this.pedidoRepository.getActiveByTableId(table_id);
       if (existingPedido) {
         throw new Error('TABLE_HAS_ACTIVE_ORDER');
       }
 
-      // 3. Crear el nuevo pedido con los datos recibidos
-      const newPedidoId = Date.now(); // O genera el ID como prefieras
-      const status = 'pendiente'; // Estado inicial
-      
-      const newPedido = await this.pedidoRepository.createPedido(
-        newPedidoId,
-        userId,       // <-- Usar el userId real
-        productIds,   // <-- Usar los productIds reales
-        status,
-        table_id
-      );
+      // 3. Obtener información del usuario
+      const user = await UserModel.findOne({ id: user_id });
+      if (!user) {
+        throw new Error('USER_NOT_FOUND');
+      }
 
-      // 4. Cambiar estado de la mesa a 'ocupada'
-      table.status = 'ocupada';
-      // Opcional: Asignar el pedido a la mesa si tu lógica lo requiere
-      // table.userAssignments.push({ userId, productIds });
-      await table.save();
+      // 4. Enriquecer los productos con información completa
+      const enrichedProducts: ProductoEnPedido[] = [];
+      for (const product of products) {
+        const productInfo = await ProductModel.findOne({ id: product.product_id });
+        if (productInfo) {
+          enrichedProducts.push({
+            product_id: product.product_id,
+            name: productInfo.name,
+            price: product.price,
+            quantity: product.quantity,
+            unit_price: product.unit_price
+          });
+        }
+      }
+
+      // 5. Calcular el total
+      const total = enrichedProducts.reduce((sum, product) => {
+        return sum + (product.price * product.quantity);
+      }, 0);
+
+      // 6. Preparar información del usuario
+      const userInfo: UsuarioInfo = {
+        id: user.id,
+        name: user.name,
+        email: user.email
+      };
+
+      // 7. Crear el pedido con todos los datos
+      const pedidoData: CreatePedidoData = {
+        table_id,
+        user_id,
+        user_info: userInfo,
+        products: enrichedProducts,
+        total,
+        status: 'pendiente'
+      };
+
+      const newPedido = await this.pedidoRepository.createPedido(pedidoData);
+
+      // 8. Cambiar estado de la mesa a 'ocupada'
+      if (newPedido) {
+        table.status = 'ocupada';
+        await table.save();
+      }
 
       return newPedido;
 
@@ -52,12 +86,12 @@ export class CreatePedidoUseCase {
       if (error instanceof Error && (
         error.message === 'TABLE_NOT_FOUND' ||
         error.message === 'TABLE_NOT_AVAILABLE' ||
-        error.message === 'TABLE_HAS_ACTIVE_ORDER')
-      ) {
+        error.message === 'TABLE_HAS_ACTIVE_ORDER' ||
+        error.message === 'USER_NOT_FOUND'
+      )) {
         throw error;
       }
       console.error('Error in CreatePedidoUseCase:', error);
-      // Devolver null o lanzar un error genérico para otros casos
       return null;
     }
   }

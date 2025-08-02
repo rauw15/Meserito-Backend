@@ -5,31 +5,28 @@ export class CreateProductUseCase {
   constructor(private readonly productRepository: ProductRepository) {}
 
   async run(
-    id: number,
     name: string,
     description: string,
     price: number,
+    category: string,
     imageUrl?: string
   ): Promise<Product | null> {
     try {
       const product = await this.productRepository.createProduct(
-        id,
         name,
         description,
         price,
+        category,
         imageUrl
       );
       return product;
     } catch (error: any) {
-      // Propagar errores específicos del repository
-      if (error.message === 'DUPLICATE_ID' || 
-          error.message === 'DUPLICATE_NAME' || 
-          error.message === 'DUPLICATE_FIELD') {
-        throw error;
+      if (error.message === 'DUPLICATE_NAME') {
+        throw error; // Propagar errores específicos
       }
       
-      console.error('Error creating product:', error);
-      throw new Error('Error al crear el producto');
+      console.error('Error in CreateProductUseCase:', error);
+      throw new Error('Error al crear el producto en el UseCase');
     }
   }
 }

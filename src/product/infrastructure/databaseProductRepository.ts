@@ -19,46 +19,56 @@ export class ProductMongoRepository implements ProductRepository {
     }
   }
 
+  // ✅✅✅ MÉTODO 'createProduct' CORREGIDO ✅✅✅
   async createProduct(
-    id: number,
+    // 1. Ya no se recibe el 'id' como parámetro.
     name: string,
     description: string,
     price: number,
+    category: string, // <-- Se añade el parámetro 'category' que faltaba
     imageUrl?: string
   ): Promise<ProductInterface | null> {
     try {
-      // Verificar si ya existe un producto con el mismo ID
-      const existingProductById = await this.productModel.findOne({ id }).exec();
-      if (existingProductById) {
-        throw new Error('DUPLICATE_ID');
-      }
+      // 2. Lógica para generar un nuevo ID auto-incremental.
+      // Busca el producto con el ID más alto.
+      const lastProduct = await this.productModel.findOne().sort({ id: -1 });
+      // El nuevo ID será el último ID + 1, o 1 si la colección está vacía.
+      const newId = lastProduct ? lastProduct.id + 1 : 1;
 
-      // Verificar si ya existe un producto con el mismo nombre
+      // Verificar si ya existe un producto con el mismo nombre (más eficiente que en el controlador)
       const existingProductByName = await this.productModel.findOne({ name }).exec();
       if (existingProductByName) {
         throw new Error('DUPLICATE_NAME');
       }
 
-      const newProduct = new this.productModel({ id, name, description, price, imageUrl });
+      // 3. Crear la nueva instancia del producto con el ID generado.
+      const newProduct = new this.productModel({
+        id: newId,
+        name,
+        description,
+        price,
+        category, // <-- Se utiliza el parámetro 'category'
+        imageUrl
+      });
+
       const savedProduct = await newProduct.save();
       return savedProduct;
+
     } catch (error: any) {
-      if (error.message === 'DUPLICATE_ID' || error.message === 'DUPLICATE_NAME') {
+      // Propagar errores específicos que ya hemos lanzado
+      if (error.message === 'DUPLICATE_NAME') {
         throw error;
       }
       
-      // Manejar errores de MongoDB duplicados
+      // Manejar errores de índice único de MongoDB de forma genérica
       if (error.code === 11000) {
-        if (error.keyPattern?.id) {
-          throw new Error('DUPLICATE_ID');
-        }
-        if (error.keyPattern?.name) {
-          throw new Error('DUPLICATE_NAME');
-        }
+        // Esto podría ocurrir si hay una condición de carrera o si el nombre se duplica
+        // entre la verificación y el guardado.
+        console.error('MongoDB duplicate key error:', error.keyValue);
         throw new Error('DUPLICATE_FIELD');
       }
       
-      console.error('Error creating product:', error);
+      console.error('Error creating product in repository:', error);
       throw new Error('DATABASE_ERROR');
     }
   }
@@ -75,11 +85,11 @@ export class ProductMongoRepository implements ProductRepository {
 
   async update(id: number, data: Partial<ProductInterface>): Promise<ProductInterface | null> {
     try {
-      // Si se está actualizando el nombre, verificar duplicados
+      // Si se está actualizando el nombre, verificar que no entre en conflicto con otro producto
       if (data.name) {
         const existingProduct = await this.productModel.findOne({ 
           name: data.name, 
-          id: { $ne: id } // Excluir el producto actual
+          id: { $ne: id } // Excluir el documento actual de la búsqueda
         }).exec();
         
         if (existingProduct) {
@@ -94,12 +104,8 @@ export class ProductMongoRepository implements ProductRepository {
         throw error;
       }
       
-      // Manejar errores de MongoDB duplicados
       if (error.code === 11000) {
-        if (error.keyPattern?.name) {
-          throw new Error('DUPLICATE_NAME');
-        }
-        throw new Error('DUPLICATE_FIELD');
+        throw new Error('DUPLICATE_NAME');
       }
       
       console.error('Error updating product:', error);
@@ -117,7 +123,6 @@ export class ProductMongoRepository implements ProductRepository {
     }
   }
 
-  // Método auxiliar para verificar si existe un producto por nombre
   async findByName(name: string): Promise<ProductInterface | null> {
     try {
       const product = await this.productModel.findOne({ name }).exec();

@@ -5,6 +5,7 @@ export interface Product extends Document {
   name: string;
   description: string;
   price: number;
+  category: string;
   imageUrl?: string; // Agregar la propiedad imageUrl
 }
 
@@ -13,6 +14,7 @@ const ProductSchema: Schema = new Schema({
   name: { type: String, required: true, unique: true },
   description: { type: String, required: true },
   price: { type: Number, required: true, min: 0 },
+  category: { type: String, required: true, default: 'comida' },
   imageUrl: { type: String }, // Agregar la propiedad imageUrl al esquema
 });
 

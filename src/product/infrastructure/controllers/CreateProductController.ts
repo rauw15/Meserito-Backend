@@ -6,10 +6,10 @@ export class CreateProductController {
 
   async run(req: Request, res: Response) {
     const data = req.body;
-    const file = req.file; // 'req.file' es poblado por multer
+    const file = req.file;
 
-    // ✅✅✅ VALIDACIÓN CORREGIDA ✅✅✅
-    // Ya no se exige el 'id'. Solo los campos que el usuario debe proporcionar.
+    // ✅✅✅ ESTA ES LA VALIDACIÓN CORRECTA ✅✅✅
+    // No se valida 'id'. Se valida 'category' que sí es obligatorio.
     if (!data.name || !data.description || !data.price || !data.category) {
       return res.status(400).send({
         status: "error",
@@ -17,7 +17,6 @@ export class CreateProductController {
       });
     }
 
-    // Validación de tipos (se mantiene)
     const price = Number(data.price);
     if (isNaN(price) || price < 0) {
       return res.status(400).send({
@@ -26,11 +25,9 @@ export class CreateProductController {
       });
     }
 
-    // Obtener la URL de Cloudinary si existe
     const imageUrl = file ? file.path : undefined;
 
     try {
-      // ✅ La llamada al UseCase ya no incluye el ID
       const product = await this.createProductUseCase.run(
         data.name.trim(),
         data.description.trim(),
@@ -39,11 +36,10 @@ export class CreateProductController {
         imageUrl
       );
 
-      // Si el producto no se pudo crear (por alguna razón que no sea un error)
       if (!product) {
         return res.status(500).send({
           status: "error",
-          msn: "El producto no pudo ser creado en el repositorio.",
+          msn: "El producto no pudo ser creado.",
         });
       }
 
@@ -53,7 +49,6 @@ export class CreateProductController {
         msn: "Producto creado con éxito",
       });
     } catch (error: any) {
-      // Manejar errores específicos lanzados desde el UseCase/Repository
       if (error.message === 'DUPLICATE_NAME') {
         return res.status(409).send({
           status: "error",

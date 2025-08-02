@@ -13,6 +13,8 @@ export class CreatePedidoUseCase {
     products: ProductoEnPedido[]
   ): Promise<Pedido | null> {
     try {
+      console.log('🔍 CreatePedidoUseCase - Iniciando creación de pedido:', { table_id, user_id, productsCount: products.length });
+      
       // 1. Verificar si la mesa existe y está disponible
       const table = await TableModel.findOne({ id: table_id });
       if (!table) {
@@ -34,11 +36,23 @@ export class CreatePedidoUseCase {
         throw new Error('USER_NOT_FOUND');
       }
 
+      console.log('👤 Usuario encontrado:', { id: user.id, name: user.name, email: user.email });
+
       // 4. Enriquecer los productos con información completa
       const enrichedProducts: ProductoEnPedido[] = [];
+      console.log('🛍️ Enriqueciendo productos...');
+      
       for (const product of products) {
+        console.log('🔍 Buscando producto con ID:', product.product_id);
         const productInfo = await ProductModel.findOne({ id: product.product_id });
+        
         if (productInfo) {
+          console.log('✅ Producto encontrado:', { 
+            id: productInfo.id, 
+            name: productInfo.name, 
+            price: productInfo.price 
+          });
+          
           enrichedProducts.push({
             product_id: product.product_id,
             name: productInfo.name,
@@ -46,13 +60,27 @@ export class CreatePedidoUseCase {
             quantity: product.quantity,
             unit_price: product.unit_price
           });
+        } else {
+          console.log('❌ Producto NO encontrado con ID:', product.product_id);
+          // Agregar producto con información básica si no se encuentra
+          enrichedProducts.push({
+            product_id: product.product_id,
+            name: `Producto ${product.product_id}`,
+            price: product.price,
+            quantity: product.quantity,
+            unit_price: product.unit_price
+          });
         }
       }
+
+      console.log('📦 Productos enriquecidos:', enrichedProducts);
 
       // 5. Calcular el total
       const total = enrichedProducts.reduce((sum, product) => {
         return sum + (product.price * product.quantity);
       }, 0);
+
+      console.log('💰 Total calculado:', total);
 
       // 6. Preparar información del usuario
       const userInfo: UsuarioInfo = {
@@ -71,7 +99,15 @@ export class CreatePedidoUseCase {
         status: 'pendiente'
       };
 
+      console.log('📋 Datos del pedido a crear:', pedidoData);
+
       const newPedido = await this.pedidoRepository.createPedido(pedidoData);
+
+      console.log('✅ Pedido creado:', newPedido ? { 
+        id: newPedido.id, 
+        productsCount: newPedido.products?.length,
+        total: newPedido.total 
+      } : 'null');
 
       // 8. Cambiar estado de la mesa a 'ocupada'
       if (newPedido) {

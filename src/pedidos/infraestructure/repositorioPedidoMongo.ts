@@ -46,6 +46,15 @@ export class PedidoMongoRepository implements PedidoRepository {
 
   async createPedido(data: CreatePedidoData): Promise<Pedido | null> {
     try {
+      console.log('📝 Repositorio - Creando pedido con datos:', {
+        table_id: data.table_id,
+        user_id: data.user_id,
+        productsCount: data.products?.length || 0,
+        products: data.products,
+        total: data.total,
+        status: data.status
+      });
+
       // Generar ID único
       const lastPedido = await this.pedidoModel.findOne().sort({ id: -1 }).exec();
       const newId = lastPedido ? lastPedido.id + 1 : 1;
@@ -55,18 +64,31 @@ export class PedidoMongoRepository implements PedidoRepository {
         table_id: data.table_id,
         user_id: data.user_id,
         user_info: data.user_info,
-        products: data.products,
-        total: data.total,
+        products: data.products || [],
+        total: data.total || 0,
         status: data.status || 'pendiente',
         timestamp: new Date(),
         created_at: new Date(),
         updated_at: new Date()
       });
 
+      console.log('📋 Repositorio - Pedido a guardar:', {
+        id: newPedido.id,
+        products: newPedido.products,
+        total: newPedido.total
+      });
+
       const savedPedido = await newPedido.save();
+      
+      console.log('✅ Repositorio - Pedido guardado:', {
+        id: savedPedido.id,
+        productsCount: savedPedido.products?.length || 0,
+        total: savedPedido.total
+      });
+
       return savedPedido;
     } catch (error) {
-      console.error('Error creating pedido:', error);
+      console.error('❌ Error creating pedido:', error);
       return null;
     }
   }

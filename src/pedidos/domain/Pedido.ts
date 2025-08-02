@@ -52,8 +52,8 @@ const PedidoSchema: Schema = new Schema({
   table_id: { type: Number, required: true },
   user_id: { type: Number, required: true },
   user_info: { type: UsuarioInfoSchema },
-  products: { type: [ProductoEnPedidoSchema], required: true },
-  total: { type: Number, required: true },
+  products: { type: [ProductoEnPedidoSchema], required: true, default: [] },
+  total: { type: Number, required: true, default: 0 },
   status: { 
     type: String, 
     required: true, 
